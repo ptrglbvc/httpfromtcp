@@ -1,54 +1,58 @@
-using System.Text;
-using System.Threading.Channels;
 using System.Net;
 using System.Net.Sockets;
+using request;
 
 namespace cmd.tcplistener;
 
-public class TcpListenerService {
-    public static IAsyncEnumerable<string> GetLinesFromChannel(Stream stream) {
-        var channel = Channel.CreateBounded<string>(new BoundedChannelOptions(100) {
-            SingleWriter = true,
-            SingleReader = true
-        });
+static public class TcpListenerService
+{
+    public static async Task StartListener()
+    {
+        int PORT = 6969;
+        var listener = new TcpListener(IPAddress.Any, PORT);
+        listener.Start();
 
-        Task.Run(async () => {
-            try {
-                byte[] buffer = new byte[8];
-                List<byte> lineBytes = new List<byte>();
+        Console.WriteLine($"Listening on port {PORT}...");
 
-                while (true) {
-                    int read = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    if (read == 0) break;
-                    for (int i = 0; i < read; i++) {
-                        if (buffer[i] == 10) {
-                            string line = Encoding.UTF8.GetString(lineBytes.ToArray());
-                            lineBytes.Clear();
-                            await channel.Writer.WriteAsync(line);
-                        } else {
-                            lineBytes.Add(buffer[i]);
+        while (true)
+        {
+            TcpClient client = await listener.AcceptTcpClientAsync();
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var stream = client.GetStream();
+                    byte[] buffer = new byte[1024];
+                    var req = new Request();
+                    while (true)
+                    {
+                        int read = await stream.ReadAsync(buffer, 0, buffer.Length);
+                        if (read == 0) break;
+
+                        for (int i = 0; i < read; i++)
+                        {
+                            req.ParseByte(buffer[i]);
+                            if (req.parserState == ParserState.Headers && req.requestLine != null)
+                            {
+                                Console.WriteLine($"[SUCCESS] Parsed Method: {req.requestLine.Method}");
+                                Console.WriteLine($"[SUCCESS] Parsed Target: {req.requestLine.Target}");
+                                Console.WriteLine($"[SUCCESS] Parsed Version: {req.requestLine.Version}");
+                                // You might want to break here for now until Headers logic is written
+                            }
+                            if (req.parserState == ParserState.Done) break;
                         }
                     }
                 }
-            } catch (Exception ex) {
-                channel.Writer.Complete(ex);
-            } finally {
-                channel.Writer.Complete();
-            }
-        });
-
-        return channel.Reader.ReadAllAsync();
-    }
-
-    public static async Task StartListener() {
-        var listener = new TcpListener(IPAddress.Any, 69420);
-        listener.Start(); 
-
-        Console.WriteLine("Listening on port 8080...");
-
-        while (true) {
-            using TcpClient client = await listener.AcceptTcpClientAsync();
-            GetLinesFromChannel(client.GetStream());
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
+                finally
+                {
+                    client.Dispose();
+                }
+            });
         }
     }
 }

@@ -1,7 +1,7 @@
 using cmd.tcplistener;
 
 class Program {
-    static async Task Main() {
+    async static Task Main() {
         await TcpListenerService.StartListener();
     }
 }
