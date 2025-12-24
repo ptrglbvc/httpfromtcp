@@ -6,13 +6,10 @@ namespace cmd.tcplistener;
 
 static public class TcpListenerService
 {
-    public static async Task StartListener()
+    public static async Task StartListener(Int32 port, Action<Request, NetworkStream> callback)
     {
-        int PORT = 6969;
-        var listener = new TcpListener(IPAddress.Any, PORT);
+        var listener = new TcpListener(IPAddress.Any, port);
         listener.Start();
-
-        Console.WriteLine($"Listening on port {PORT}...");
 
         while (true)
         {
@@ -33,14 +30,12 @@ static public class TcpListenerService
                         for (int i = 0; i < read; i++)
                         {
                             req.ParseByte(buffer[i]);
-                            if (req.parserState == ParserState.Headers && req.requestLine != null)
+                            if (req.parserState == ParserState.Done)
                             {
-                                Console.WriteLine($"[SUCCESS] Parsed Method: {req.requestLine.Method}");
-                                Console.WriteLine($"[SUCCESS] Parsed Target: {req.requestLine.Target}");
-                                Console.WriteLine($"[SUCCESS] Parsed Version: {req.requestLine.Version}");
-                                // You might want to break here for now until Headers logic is written
+                                callback(req, stream);
+                                break;
                             }
-                            if (req.parserState == ParserState.Done) break;
+
                         }
                     }
                 }
