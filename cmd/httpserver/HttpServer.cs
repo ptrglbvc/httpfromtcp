@@ -46,10 +46,11 @@ public class Server
         return "application/octet-stream";
     }
 
-    private void HandleRequest(Request req, NetworkStream stream)
+    private async Task HandleRequest(Request req, NetworkStream stream)
     {
         var responseBytes = Handler(req);
-        stream.WriteAsync(responseBytes);
+        await stream.WriteAsync(responseBytes);
+        await stream.FlushAsync();
     }
 
     private byte[] Handler(Request req)
@@ -123,6 +124,7 @@ public class Server
     {
         await TcpListenerService.StartListener(port, HandleRequest);
     }
+
     public void Stop()
     {
 
