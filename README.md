@@ -1,6 +1,8 @@
 # Federer
 
-An HTTP file server meant primarely for streaming media to devices on the local network. Like the tennis player, it's a server that's efficient for its size (zero dependencies). Elegant (as long as you don't read the code). And it will probably choke from time to time (2019).
+An HTTP file server meant primarely for streaming media to devices on the local network.
+
+Like the tennis player, it's a server that's efficient for its size (zero dependencies). Elegant (as long as you don't read the code). And it will probably choke from time to time (2019).
 
 Inspired while taking ThePrimeagen's course [Learn the HTTP Protocol in Go](https://www.boot.dev/courses/learn-http-protocol-golang) with C#. I basically got sidetracked, as I was always curious how streaming media via HTTP works, and why seeking videos in particular was not possible in some servers. 
 
