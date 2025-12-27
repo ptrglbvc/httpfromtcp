@@ -14,17 +14,6 @@ Inspired while taking ThePrimeagen's course [Learn the HTTP Protocol in Go](http
 dotnet tool install --global federer
 ```
 
-### Via Homebrew (macOS/Linux)
-
-```bash
-brew tap ptrglbvc/tap
-brew install federer
-```
-
-### Manual Download
-
-Download the latest release from [GitHub Releases](https://github.com/ptrglbvc/federer/releases).
-
 ### Installation Script
 
 ```bash
